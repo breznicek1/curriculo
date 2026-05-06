@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bruno Reznicek — Gestor de Operações & Projetos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0f0f0f;--ink2:#3a3a3a;--ink3:#7a7a7a;--accent:#1a4f8a;--accent-light:#dce8f5;--bg:#f7f8fa;--surface:#ffffff;--border:#e2e6ec;--serif:'Playfair Display',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.hero{background:var(--ink);color:#fff;padding:80px 0 60px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-140px;right:-100px;width:500px;height:500px;border-radius:50%;background:var(--accent);opacity:.1;pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-60px;left:80px;width:200px;height:200px;border-radius:50%;border:1px solid rgba(255,255,255,.07);pointer-events:none}
+.wrap{max-width:860px;margin:0 auto;padding:0 32px}
+.hero-grid{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end}
+.overline{font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#6ea8e0;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.overline::before{content:'';display:inline-block;width:28px;height:1px;background:#6ea8e0}
+h1{font-family:var(--serif);font-size:clamp(36px,6vw,56px);font-weight:700;line-height:1.1;color:#fff;margin-bottom:16px;letter-spacing:-.01em}
+.subtitle{font-size:14px;color:rgba(255,255,255,.5);font-weight:300;max-width:480px;line-height:1.75}
+.contacts-row{display:flex;flex-wrap:wrap;gap:6px 20px;margin-top:28px;padding-top:28px;border-top:1px solid rgba(255,255,255,.1)}
+.contact-chip{display:flex;align-items:center;gap:7px;font-size:12px;color:rgba(255,255,255,.55)}
+.contact-chip svg{width:13px;height:13px;opacity:.45;flex-shrink:0}
+.stack-pills{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.pill{font-size:10.5px;font-weight:500;letter-spacing:.06em;padding:5px 14px;border-radius:20px;white-space:nowrap}
+.pill-blue{background:var(--accent);color:#fff}
+.pill-dim{background:rgba(255,255,255,.08);color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.1)}
+.hero-divider{height:4px;background:linear-gradient(90deg,var(--accent) 0%,#4a90d9 50%,transparent 100%)}
+.page{display:grid;grid-template-columns:1fr 300px;max-width:860px;margin:0 auto;padding:0 32px}
+.main{padding:52px 52px 52px 0;border-right:1px solid var(--border)}
+.side{padding:52px 0 52px 40px}
+.sec{margin-bottom:48px}
+.sec-title{font-size:10.5px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:24px;display:flex;align-items:center;gap:12px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.summary-box{background:var(--ink);color:rgba(255,255,255,.82);border-radius:12px;padding:24px 28px;font-size:14px;line-height:1.8;position:relative;overflow:hidden}
+.summary-box::before{content:'"';position:absolute;top:-10px;right:20px;font-family:var(--serif);font-size:120px;color:var(--accent);opacity:.25;line-height:1}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:48px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.kpi-num{font-family:var(--serif);font-size:28px;font-weight:700;color:var(--accent);line-height:1;margin-bottom:4px}
+.kpi-label{font-size:11px;color:var(--ink3);line-height:1.3}
+.diferencial-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:48px}
+.dif-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:14px 16px}
+.dif-card h4{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px}
+.dif-card p{font-size:12px;color:var(--ink3);line-height:1.5}
+.job{margin-bottom:36px}
+.job-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}
+.company-name{font-family:var(--serif);font-size:16px;font-weight:700;color:var(--ink)}
+.job-title{font-size:12.5px;color:var(--accent);font-weight:500;margin-top:2px}
+.job-period{font-size:11px;color:var(--ink3);white-space:nowrap;flex-shrink:0;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:3px 10px}
+.job-bullets{list-style:none;margin-top:10px}
+.job-bullets li{font-size:13.5px;color:var(--ink2);line-height:1.6;padding-left:16px;position:relative;margin-bottom:5px}
+.job-bullets li::before{content:'▸';position:absolute;left:0;color:var(--accent);font-size:10px;top:4px}
+.job-bullets li strong{color:var(--ink);font-weight:500}
+.job-divider{border:none;border-top:1px dashed var(--border);margin-bottom:36px}
+.widget{margin-bottom:36px}
+.widget-title{font-size:10px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.bar-skill{margin-bottom:10px}
+.bar-label{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);margin-bottom:4px}
+.bar-track{background:var(--border);border-radius:4px;height:4px}
+.bar-fill{background:var(--accent);border-radius:4px;height:4px}
+.skill-tags{display:flex;flex-wrap:wrap;gap:5px}
+.stag{font-size:11px;padding:4px 10px;border-radius:20px;background:var(--bg);border:1px solid var(--border);color:var(--ink2)}
+.stag.hi{background:var(--accent-light);color:#1a3f6f;border-color:#a8c8e8}
+.edu-item{margin-bottom:14px}
+.edu-degree{font-size:13px;font-weight:500;color:var(--ink)}
+.edu-school{font-size:12px;color:var(--ink3);margin-top:2px}
+.edu-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;margin-top:4px}
+.edu-badge.ongoing{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}
+.edu-badge.done{background:var(--bg);color:var(--ink3);border:1px solid var(--border)}
+.lang-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.lang-item:last-child{border-bottom:none}
+.lang-level{font-size:11px;color:var(--ink3)}
+footer{text-align:center;padding:32px;font-size:11px;color:var(--ink3);border-top:1px solid var(--border);max-width:860px;margin:0 auto}
+@media print{footer{display:none}.hero{padding:40px 0 30px}body{font-size:13px}}
+@media(max-width:680px){.page{grid-template-columns:1fr;padding:0 20px}.main{padding:40px 0;border-right:none;border-bottom:1px solid var(--border)}.side{padding:40px 0}.hero-grid{grid-template-columns:1fr}.stack-pills{flex-direction:row;flex-wrap:wrap;align-items:flex-start}.kpi-row{grid-template-columns:1fr 1fr}.diferencial-grid{grid-template-columns:1fr}.wrap{padding:0 20px}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.hero-grid{animation:fadeUp .7s ease both}
+.kpi-row{animation:fadeUp .7s ease .1s both}
+.summary-box{animation:fadeUp .7s ease .15s both}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <p class="overline">Currículo Profissional</p>
+        <h1>Bruno<br>Reznicek</h1>
+        <p class="subtitle">Gestor com 15+ anos de experiência em Operações, Projetos e Desenvolvimento de Negócios. Perfil híbrido: liderança estratégica + domínio de dados, BI e IA.</p>
+        <div class="contacts-row">
+          <span class="contact-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.73 19.73 0 01.02 1.18 2 2 0 012 0h3a2 2 0 012 1.72 12.81 12.81 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14h-.08z"/></svg>
+            (11) 98205-1205
+          </span>
+          <span class="contact-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            breznicek@gmail.com
+          </span>
+          <span class="contact-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+            linkedin.com/in/bruno-reznicek-0365a36b
+          </span>
+          <span class="contact-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            São Paulo, SP
+          </span>
+        </div>
+      </div>
+      <div class="stack-pills">
+        <span class="pill pill-blue">Gestão de Operações</span>
+        <span class="pill pill-dim">15+ anos</span>
+        <span class="pill pill-dim">BPO · Financeiro · Varejo</span>
+        <span class="pill pill-dim">Python · SQL · Power BI</span>
+        <span class="pill pill-dim">IA Generativa</span>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="hero-divider"></div>
+
+<div class="page">
+  <main class="main">
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-num">15+</div><div class="kpi-label">Anos de liderança em operações</div></div>
+      <div class="kpi"><div class="kpi-num">92</div><div class="kpi-label">Colaboradores gerenciados</div></div>
+      <div class="kpi"><div class="kpi-num">BR</div><div class="kpi-label">Operações implantadas a nível nacional</div></div>
+    </div>
+
+    <section class="sec">
+      <p class="sec-title">Resumo Profissional</p>
+      <div class="summary-box">Gestor Executivo com 15+ anos de experiência em Operações, Projetos e Desenvolvimento de Negócios nos setores de BPO, financeiro e varejo. Perfil híbrido entre liderança estratégica e tecnologia: constrói dashboards, automações e pipelines de dados com Python, SQL, Power BI e IA generativa. Histórico comprovado na elevação de CSAT, NPS e FCR, redução de custos operacionais, implantação de operações do zero e liderança de equipes multidisciplinares orientadas a resultado.</div>
+    </section>
+
+    <section class="sec">
+      <p class="sec-title">Diferenciais</p>
+      <div class="diferencial-grid">
+        <div class="dif-card"><h4>Perfil Híbrido</h4><p>Une gestão estratégica com domínio técnico em dados, automações e BI — raro no mercado de gestão.</p></div>
+        <div class="dif-card"><h4>Implantação do Zero</h4><p>Experiência em estruturar operações comerciais e de BPO do zero, a nível nacional, com foco em escala.</p></div>
+        <div class="dif-card"><h4>Decisões Baseadas em Dados</h4><p>Cria seus próprios dashboards e KPIs — não depende de terceiros para ter visibilidade do negócio.</p></div>
+        <div class="dif-card"><h4>Múltiplos Setores</h4><p>BPO, financeiro, adquirência, varejo — visão ampla de diferentes modelos de negócio e canais.</p></div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <p class="sec-title">Experiência Profissional</p>
+
+      <div class="job">
+        <div class="job-header">
+          <div><div class="company-name">Inove Experience Center (i9xc.com)</div><div class="job-title">Gerente de Projetos, QA e Operações – BPO</div></div>
+          <span class="job-period">Ago/2021 – Atual</span>
+        </div>
+        <ul class="job-bullets">
+          <li>Gestão de operação multicanal (SAC, Vendas, Mídias Sociais, Reclame Aqui) com <strong>92 colaboradores</strong> por Voz, Chat, E-mail e WhatsApp.</li>
+          <li>Desenvolvimento e manutenção de <strong>dashboards e pipelines ETL</strong> com Python, SQL, Streamlit e Supabase para análise em tempo real e tomada de decisão.</li>
+          <li>Implantação de novos clientes e projetos end-to-end: escopo, dimensionamento, treinamento e go-live.</li>
+          <li>Gestão das áreas de Qualidade, Treinamento, BI e Planejamento.</li>
+          <li>Melhoria contínua de KPIs: elevação de CSAT, NPS e FCR; redução de TMA, TME e rechamadas.</li>
+        </ul>
+      </div>
+
+      <hr class="job-divider">
+
+      <div class="job">
+        <div class="job-header">
+          <div><div class="company-name">Prisma Promotora</div><div class="job-title">Coordenador de Implantação e Desenvolvimento de Negócios</div></div>
+          <span class="job-period">Nov/2020 – Jul/2021</span>
+        </div>
+        <ul class="job-bullets">
+          <li><strong>Implantação da operação comercial a nível Brasil</strong> com equipes internas e externas do zero — produtos financeiros Banco Safra.</li>
+          <li>Recrutamento, treinamento e desenvolvimento de equipes focadas em alcance de metas.</li>
+          <li>Estratégias que ampliaram participação de mercado e fortaleceram parcerias regionais.</li>
+        </ul>
+      </div>
+
+      <hr class="job-divider">
+
+      <div class="job">
+        <div class="job-header">
+          <div><div class="company-name">Almeida Kruger</div><div class="job-title">Gestor de Vendas – Adquirência (GETNET)</div></div>
+          <span class="job-period">Set/2020 – Nov/2020</span>
+        </div>
+        <ul class="job-bullets">
+          <li>Liderança de equipes de vendas externas com foco em produtos de adquirência GETNET.</li>
+          <li>Implementação de sistema de monitoramento de metas e KPIs com aumento de produtividade.</li>
+          <li>Negociação e fechamento de contratos com clientes de médio e grande porte.</li>
+        </ul>
+      </div>
+
+      <hr class="job-divider">
+
+      <div class="job">
+        <div class="job-header">
+          <div><div class="company-name">Portocred Financeira</div><div class="job-title">Supervisão Comercial e CRM</div></div>
+          <span class="job-period">Nov/2019 – Fev/2020</span>
+        </div>
+        <ul class="job-bullets">
+          <li>Gestão de operações de Consignado Privado e Empréstimo Pessoal em call center terceirizado.</li>
+          <li>Monitoramento de KPIs e análise de dados para otimização de processos e campanhas.</li>
+        </ul>
+      </div>
+
+      <hr class="job-divider">
+
+      <div class="job">
+        <div class="job-header">
+          <div><div class="company-name">Correspondente Banco BMG</div><div class="job-title">Coordenador de Inteligência de Negócio e Gestão Comercial</div></div>
+          <span class="job-period">Nov/2017 – Jun/2019</span>
+        </div>
+        <ul class="job-bullets">
+          <li>Liderança de equipes de vendas e atendimento com foco em produtos financeiros Banco BMG.</li>
+          <li>Desenvolvimento de estratégias que ampliaram rentabilidade e volume de carteira.</li>
+          <li>Gestão de carteira de clientes e análise de crédito para tomada de decisão assertiva.</li>
+        </ul>
+      </div>
+
+      <hr class="job-divider">
+
+      <div class="job">
+        <div class="job-header">
+          <div><div class="company-name">Grupo Mais Valor</div><div class="job-title">Coordenador de Relacionamento</div></div>
+          <span class="job-period">Mai/2012 – Jan/2017</span>
+        </div>
+        <ul class="job-bullets">
+          <li>Gerenciamento de carteira de clientes Banco do Brasil e Santander.</li>
+          <li>Implementação de projetos PAP e SDR; gestão de relacionamentos com stakeholders e parceiros.</li>
+        </ul>
+      </div>
+
+      <hr class="job-divider">
+
+      <div class="job">
+        <div class="job-header">
+          <div><div class="company-name">Esys Colibri · Logma · Ambev · C&A Brasil</div><div class="job-title">Liderança comercial, vendas externas e gestão de equipes</div></div>
+          <span class="job-period">2006 – 2011</span>
+        </div>
+        <ul class="job-bullets">
+          <li>Trajetória sólida em vendas externas, liderança de equipes e gestão de PDVs em empresas de referência nos setores de varejo, serviços e bens de consumo.</li>
+        </ul>
+      </div>
+
+    </section>
+  </main>
+
+  <aside class="side">
+
+    <div class="widget">
+      <p class="widget-title">Competências de Liderança</p>
+      <div class="bar-skill"><div class="bar-label"><span>Gestão de equipes</span><span>Sênior</span></div><div class="bar-track"><div class="bar-fill" style="width:95%"></div></div></div>
+      <div class="bar-skill"><div class="bar-label"><span>Gestão de KPIs / metas</span><span>Sênior</span></div><div class="bar-track"><div class="bar-fill" style="width:95%"></div></div></div>
+      <div class="bar-skill"><div class="bar-label"><span>Implantação de operações</span><span>Sênior</span></div><div class="bar-track"><div class="bar-fill" style="width:90%"></div></div></div>
+      <div class="bar-skill"><div class="bar-label"><span>Desenvolvimento de pessoas</span><span>Avançado</span></div><div class="bar-track"><div class="bar-fill" style="width:85%"></div></div></div>
+      <div class="bar-skill"><div class="bar-label"><span>Negociação B2B</span><span>Avançado</span></div><div class="bar-track"><div class="bar-fill" style="width:85%"></div></div></div>
+    </div>
+
+    <div class="widget">
+      <p class="widget-title">Dados & Tecnologia</p>
+      <div class="skill-tags">
+        <span class="stag hi">Python</span><span class="stag hi">SQL</span><span class="stag hi">Power BI</span><span class="stag hi">Streamlit</span><span class="stag hi">Supabase</span><span class="stag">Excel Avançado</span><span class="stag">Power Query</span><span class="stag">GitHub</span><span class="stag">IA Generativa</span><span class="stag">ETL / Automações</span><span class="stag">Next.js</span><span class="stag">CRMs</span>
+      </div>
+    </div>
+
+    <div class="widget">
+      <p class="widget-title">Gestão Operacional</p>
+      <div class="skill-tags">
+        <span class="stag">CSAT · NPS · FCR</span><span class="stag">TMA · TME · SLA</span><span class="stag">BPO Multicanal</span><span class="stag">Melhoria Contínua</span><span class="stag">Planejamento</span>
+      </div>
+    </div>
+
+    <div class="widget">
+      <p class="widget-title">Metodologias</p>
+      <div class="skill-tags">
+        <span class="stag">Agile</span><span class="stag">Scrum</span><span class="stag">Kanban</span><span class="stag">OKRs</span>
+      </div>
+    </div>
+
+    <div class="widget">
+      <p class="widget-title">Produtos Financeiros</p>
+      <div class="skill-tags">
+        <span class="stag">Adquirência</span><span class="stag">Consignado</span><span class="stag">Empréstimo Pessoal</span><span class="stag">Portabilidade</span><span class="stag">Cartões</span><span class="stag">Consórcios</span>
+      </div>
+    </div>
+
+    <div class="widget">
+      <p class="widget-title">Formação</p>
+      <div class="edu-item">
+        <div class="edu-degree">Pós-Graduação — Ciência de Dados com IA</div>
+        <div class="edu-school">FIAP</div>
+        <span class="edu-badge ongoing">Em andamento</span>
+      </div>
+      <div class="edu-item">
+        <div class="edu-degree">Bacharelado em Administração</div>
+        <div class="edu-school">UNICSUL – Cruzeiro do Sul</div>
+        <span class="edu-badge done">Concluído</span>
+      </div>
+    </div>
+
+    <div class="widget">
+      <p class="widget-title">Idiomas</p>
+      <div class="lang-item"><span>Português</span><span class="lang-level">Nativo</span></div>
+      <div class="lang-item"><span>Inglês</span><span class="lang-level">Intermediário</span></div>
+      <div class="lang-item"><span>Espanhol</span><span class="lang-level">Básico</span></div>
+    </div>
+
+  </aside>
+</div>
+
+<footer>Bruno Reznicek &nbsp;·&nbsp; breznicek@gmail.com &nbsp;·&nbsp; (11) 98205-1205 &nbsp;·&nbsp; São Paulo, SP &nbsp;·&nbsp; Atualizado em maio de 2026</footer>
+
+</body>
+</html>
