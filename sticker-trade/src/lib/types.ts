@@ -118,4 +118,5 @@ export interface FeedItem {
   section: string | null
   quantity: number
   distance_km: number | null
+  is_boosted?: boolean
 }

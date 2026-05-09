@@ -31,15 +31,19 @@ export default async function FeedPage() {
       .limit(500),
   ])
 
-  // Fetch owner coordinates server-side for distance calculation
   const ownerIds = [...new Set((rawFeed || []).map((r: any) => r.owner?.id || r.user_id))]
-  const { data: ownerCoords } = ownerIds.length
-    ? await supabase
-        .schema('figurinhas')
-        .from('profiles')
-        .select('id, latitude, longitude')
-        .in('id', ownerIds)
-    : { data: [] }
+
+  // Fetch owner coordinates + active boosts in parallel
+  const [{ data: ownerCoords }, { data: activeBoosts }] = await Promise.all([
+    ownerIds.length
+      ? supabase.schema('figurinhas').from('profiles').select('id, latitude, longitude').in('id', ownerIds)
+      : Promise.resolve({ data: [] }),
+    supabase.schema('figurinhas').from('boosts')
+      .select('sticker_id')
+      .gt('expires_at', new Date().toISOString()),
+  ])
+
+  const boostedStickerIds = new Set((activeBoosts || []).map((b: any) => b.sticker_id))
 
   const coordMap = new Map(
     (ownerCoords || []).map((p: any) => [p.id, { lat: p.latitude as number | null, lng: p.longitude as number | null }])
@@ -70,6 +74,7 @@ export default async function FeedPage() {
       section: row.sticker?.section || null,
       quantity: row.quantity,
       distance_km,
+      is_boosted: boostedStickerIds.has(row.sticker?.id || ''),
     }
   })
 

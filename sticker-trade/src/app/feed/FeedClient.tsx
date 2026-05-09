@@ -42,11 +42,16 @@ export default function FeedClient({ items, myCity, myState, hasGps }: Props) {
   }, [items, search])
 
   const sortedFiltered = useMemo(() => {
-    if (sortBy !== 'proximidade') return filtered
-    return [...filtered].sort((a, b) =>
-      proximityScore(a.distance_km, a.city, a.state, myCity, myState) -
-      proximityScore(b.distance_km, b.city, b.state, myCity, myState)
-    )
+    return [...filtered].sort((a, b) => {
+      // Boosted always first
+      if (a.is_boosted && !b.is_boosted) return -1
+      if (!a.is_boosted && b.is_boosted) return 1
+      if (sortBy === 'numero') return a.sticker_number - b.sticker_number
+      return (
+        proximityScore(a.distance_km, a.city, a.state, myCity, myState) -
+        proximityScore(b.distance_km, b.city, b.state, myCity, myState)
+      )
+    })
   }, [filtered, sortBy, myCity, myState])
 
   const bySticker = useMemo(() => {
@@ -181,6 +186,11 @@ export default function FeedClient({ items, myCity, myState, hasGps }: Props) {
                         {first.team || first.country} • {first.section}
                       </p>
                     </div>
+                    {entries.some(e => e.is_boosted) && (
+                      <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full">
+                        ⚡ Destaque
+                      </span>
+                    )}
                     <span className="ml-auto bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">
                       {entries.length} {entries.length === 1 ? 'pessoa tem' : 'pessoas têm'}
                     </span>

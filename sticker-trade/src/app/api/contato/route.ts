@@ -29,6 +29,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Você não pode contatar a si mesmo.' }, { status: 400 })
   }
 
+  // Check monthly contact limit for free users
+  const FREE_LIMIT = 5
+  const { data: myProfile } = await supabase
+    .schema('figurinhas')
+    .from('profiles')
+    .select('is_pro')
+    .eq('id', user.id)
+    .single()
+
+  if (!myProfile?.is_pro) {
+    const startOfMonth = new Date()
+    startOfMonth.setDate(1)
+    startOfMonth.setHours(0, 0, 0, 0)
+
+    const { count } = await supabase
+      .schema('figurinhas')
+      .from('contact_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('requester_id', user.id)
+      .gte('created_at', startOfMonth.toISOString())
+
+    if ((count ?? 0) >= FREE_LIMIT) {
+      return NextResponse.json(
+        { error: 'limit_reached', upgrade_url: '/upgrade' },
+        { status: 402 }
+      )
+    }
+  }
+
   // Lookup owner profile (phone/email are sensitive — kept server-side only)
   const { data: owner, error: ownerError } = await supabase
     .schema('figurinhas')

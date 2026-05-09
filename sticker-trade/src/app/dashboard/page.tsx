@@ -4,22 +4,31 @@ import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/Header'
 import ShareProfileButton from '@/components/ShareProfileButton'
 import AffiliateButton from '@/components/AffiliateButton'
+import BoostButton from '@/components/BoostButton'
 import { pacotesBuyUrl } from '@/lib/affiliates'
 import type { UserSticker, Sticker } from '@/lib/types'
+
+const FREE_LIMIT = 5
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const startOfMonth = new Date()
+  startOfMonth.setDate(1)
+  startOfMonth.setHours(0, 0, 0, 0)
+
   const [
     { data: profile },
     { data: userStickers },
     { count: wishlistCount },
     { count: matchCount },
+    { count: contactsThisMonth },
+    { data: activeBoosts },
   ] = await Promise.all([
     supabase.schema('figurinhas').from('profiles')
-      .select('username, city, state').eq('id', user.id).single(),
+      .select('username, city, state, is_pro').eq('id', user.id).single(),
     supabase.schema('figurinhas').from('user_stickers')
       .select('*, sticker:sticker_id(id, number, player_name, team, country, section)')
       .eq('user_id', user.id).order('sticker(number)'),
@@ -29,7 +38,19 @@ export default async function DashboardPage() {
       .select('*', { count: 'exact', head: true })
       .or(`user_a_id.eq.${user.id},user_b_id.eq.${user.id}`)
       .eq('status', 'new'),
+    supabase.schema('figurinhas').from('contact_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('requester_id', user.id)
+      .gte('created_at', startOfMonth.toISOString()),
+    supabase.schema('figurinhas').from('boosts')
+      .select('sticker_id')
+      .eq('user_id', user.id)
+      .gt('expires_at', new Date().toISOString()),
   ])
+
+  const isPro = (profile as any)?.is_pro ?? false
+  const contactsUsed = contactsThisMonth ?? 0
+  const boostedIds = new Set((activeBoosts || []).map((b: any) => b.sticker_id))
 
   const stickers = (userStickers || []) as (UserSticker & { sticker: Sticker })[]
   const totalRepetidas = stickers.reduce((sum, s) => sum + s.quantity, 0)
@@ -48,11 +69,11 @@ export default async function DashboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">
-              Olá, {profile?.username ?? 'colecionador'}! 👋
+              Olá, {(profile as any)?.username ?? 'colecionador'}! 👋
             </h1>
-            {profile?.city && (
+            {(profile as any)?.city && (
               <p className="text-gray-500 text-sm mt-0.5">
-                {profile.city}{profile.state ? ` — ${profile.state}` : ''}
+                {(profile as any).city}{(profile as any).state ? ` — ${(profile as any).state}` : ''}
               </p>
             )}
           </div>
@@ -64,9 +85,47 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
+        {/* Banner Pro / uso de contatos */}
+        {isPro ? (
+          <div className="bg-gradient-to-r from-green-700 to-green-900 text-white rounded-xl px-5 py-3 mb-5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-yellow-400 font-bold">★ Pro</span>
+              <span className="text-green-200 text-sm">Contatos ilimitados ativos</span>
+            </div>
+            <span className="text-xs text-green-300">{boostedIds.size} boost{boostedIds.size !== 1 ? 's' : ''} ativo{boostedIds.size !== 1 ? 's' : ''}</span>
+          </div>
+        ) : (
+          <div className={`rounded-xl px-5 py-3 mb-5 flex items-center justify-between ${
+            contactsUsed >= FREE_LIMIT
+              ? 'bg-red-50 border border-red-200'
+              : contactsUsed >= FREE_LIMIT - 1
+              ? 'bg-yellow-50 border border-yellow-200'
+              : 'bg-gray-50 border border-gray-200'
+          }`}>
+            <div className="text-sm">
+              <span className={`font-semibold ${contactsUsed >= FREE_LIMIT ? 'text-red-700' : 'text-gray-700'}`}>
+                {contactsUsed} de {FREE_LIMIT} contatos
+              </span>
+              <span className="text-gray-400"> usados este mês</span>
+            </div>
+            {contactsUsed >= FREE_LIMIT ? (
+              <Link
+                href="/upgrade"
+                className="text-xs bg-green-700 text-white font-bold px-3 py-1.5 rounded-lg hover:bg-green-800 transition-colors"
+              >
+                Assinar Pro
+              </Link>
+            ) : (
+              <Link href="/upgrade" className="text-xs text-gray-400 hover:text-green-700 transition-colors">
+                Ver planos
+              </Link>
+            )}
+          </div>
+        )}
+
         {/* Compartilhar + afiliado */}
-        {profile?.username && (
-          <ShareProfileButton username={profile.username} />
+        {(profile as any)?.username && (
+          <ShareProfileButton username={(profile as any).username} />
         )}
         <div className="mb-6">
           <AffiliateButton url={pacotesBuyUrl()} label="🛒 Comprar pacotes de figurinhas Copa 2026" variant="banner" />
@@ -146,6 +205,12 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-gray-700 text-sm">Suas repetidas</h2>
+              <span className="text-xs text-gray-400">
+                ⚡ Boost = destaque no feed por 7 dias (R$2,90)
+              </span>
+            </div>
             {Object.entries(bySection).sort(([a], [b]) => a.localeCompare(b)).map(([section, items]) => (
               <div key={section} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="bg-green-50 border-b border-gray-100 px-5 py-2.5 flex items-center justify-between">
@@ -166,7 +231,12 @@ export default async function DashboardPage() {
                           <p className="text-xs text-gray-400">{item.sticker?.team ?? item.sticker?.country}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
+                        <BoostButton
+                          stickerId={item.sticker_id}
+                          isBoosted={boostedIds.has(item.sticker_id)}
+                          isPro={isPro}
+                        />
                         <span className="text-xs bg-yellow-100 text-yellow-800 px-2.5 py-1 rounded-full font-semibold">
                           ×{item.quantity}
                         </span>

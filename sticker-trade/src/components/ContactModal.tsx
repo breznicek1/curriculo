@@ -34,6 +34,12 @@ export default function ContactModal({ item, onClose }: Props) {
 
     const json = await res.json()
 
+    if (res.status === 402) {
+      // Limit reached — redirect to upgrade
+      window.location.href = '/upgrade'
+      return
+    }
+
     if (!res.ok) {
       setError(json.error || 'Erro ao enviar contato.')
       setLoading(false)
