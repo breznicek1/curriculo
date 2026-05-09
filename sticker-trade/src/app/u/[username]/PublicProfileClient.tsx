@@ -5,6 +5,7 @@ import Link from 'next/link'
 import ContactModal from '@/components/ContactModal'
 import AffiliateButton from '@/components/AffiliateButton'
 import { pacotesBuyUrl, albumBuyUrl } from '@/lib/affiliates'
+import { distanceLabel } from '@/lib/geo'
 import type { UserSticker, Sticker, ProfilePublic, FeedItem } from '@/lib/types'
 
 interface Props {
@@ -13,10 +14,11 @@ interface Props {
   totalStickers: number
   isLoggedIn: boolean
   currentUserId: string | null
+  distanceKm: number | null
 }
 
 export default function PublicProfileClient({
-  profile, bySection, totalStickers, isLoggedIn, currentUserId,
+  profile, bySection, totalStickers, isLoggedIn, currentUserId, distanceKm,
 }: Props) {
   const [copied, setCopied]           = useState(false)
   const [contactItem, setContactItem] = useState<FeedItem | null>(null)
@@ -58,6 +60,7 @@ export default function PublicProfileClient({
       country: sticker.country,
       section: sticker.section,
       quantity: 1,
+      distance_km: distanceKm,
     })
   }
 
@@ -100,6 +103,11 @@ export default function PublicProfileClient({
                 <p className="text-gray-500 text-sm mt-0.5">
                   📍 {profile.city}{profile.state ? `, ${profile.state}` : ''}
                 </p>
+              )}
+              {distanceKm !== null && !isOwnProfile && (
+                <span className="inline-block mt-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                  📍 {distanceLabel(distanceKm)} de você
+                </span>
               )}
             </div>
 

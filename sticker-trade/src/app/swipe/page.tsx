@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/Header'
 import SwipeClient from './SwipeClient'
+import { haversineKm } from '@/lib/geo'
 import type { Sticker } from '@/lib/types'
 
 export default async function SwipePage() {
@@ -54,9 +55,40 @@ export default async function SwipePage() {
   const wishlistIds    = new Set((myWishlist  || []).map((s) => s.sticker_id))
   const seenIds        = new Set((seenRows    || []).map((s) => s.sticker_id))
 
+  // Fetch my location for proximity on cards
+  const { data: myProfile } = await supabase
+    .schema('figurinhas')
+    .from('profiles')
+    .select('latitude, longitude')
+    .eq('id', user.id)
+    .single()
+
+  // Build nearest-owner distance map
+  let nearestKmMap = new Map<string, number>()
+  if (myProfile?.latitude && myProfile?.longitude) {
+    const ownerIds = [...new Set((available || []).map((r: any) => r.user_stickers?.user_id).filter(Boolean))]
+    if (ownerIds.length) {
+      const { data: ownerCoords } = await supabase
+        .schema('figurinhas')
+        .from('profiles')
+        .select('id, latitude, longitude')
+        .in('id', ownerIds)
+      const coordMap = new Map((ownerCoords || []).map((p: any) => [p.id, { lat: p.latitude, lng: p.longitude }]))
+      for (const row of (available || []) as any[]) {
+        const ownerId = row.user_stickers?.user_id
+        const coords = coordMap.get(ownerId)
+        if (coords?.lat && coords?.lng) {
+          const km = haversineKm(myProfile.latitude, myProfile.longitude, coords.lat, coords.lng)
+          const current = nearestKmMap.get(row.id)
+          if (current === undefined || km < current) nearestKmMap.set(row.id, Math.round(km))
+        }
+      }
+    }
+  }
+
   // Stickers únicos disponíveis (dedup), excluindo vistos e os que já tenho como repetida
   const seen = new Set<string>()
-  const deck: (Sticker & { available_count: number; has_match: boolean })[] = []
+  const deck: (Sticker & { available_count: number; has_match: boolean; nearest_km: number | null })[] = []
 
   for (const row of (available || []) as any[]) {
     if (seen.has(row.id)) continue
@@ -65,8 +97,8 @@ export default async function SwipePage() {
     seen.add(row.id)
 
     const count = (available || []).filter((r: any) => r.id === row.id).length
-    const has_match = myDuplicateIds.size > 0 // simplificação: refinamos no client
-    deck.push({ ...row, available_count: count, has_match })
+    const has_match = myDuplicateIds.size > 0
+    deck.push({ ...row, available_count: count, has_match, nearest_km: nearestKmMap.get(row.id) ?? null })
   }
 
   const { count: matchCount } = await supabase

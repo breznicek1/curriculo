@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import AffiliateButton from '@/components/AffiliateButton'
 import { stickerBuyUrl } from '@/lib/affiliates'
+import { distanceLabel } from '@/lib/geo'
 import type { Sticker } from '@/lib/types'
 
 interface DeckSticker extends Sticker {
   available_count: number
   has_match: boolean
+  nearest_km: number | null
 }
 
 interface Props {
@@ -225,11 +227,18 @@ export default function SwipeClient({ deck, wishlistIds, userId }: Props) {
                 {current.available_count}{' '}
                 {current.available_count === 1 ? 'pessoa tem' : 'pessoas têm'} repetida
               </span>
-              {current.has_match && (
-                <span className="bg-yellow-400/30 text-yellow-200 px-2 py-0.5 rounded-full">
-                  ⚡ Possível match
-                </span>
-              )}
+              <div className="flex items-center gap-1.5">
+                {current.nearest_km !== null && (
+                  <span className="bg-white/20 text-white px-2 py-0.5 rounded-full">
+                    📍 {distanceLabel(current.nearest_km)}
+                  </span>
+                )}
+                {current.has_match && (
+                  <span className="bg-yellow-400/30 text-yellow-200 px-2 py-0.5 rounded-full">
+                    ⚡ Match
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>

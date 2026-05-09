@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import PublicProfileClient from './PublicProfileClient'
+import { haversineKm } from '@/lib/geo'
 import type { Sticker, UserSticker } from '@/lib/types'
 
 interface Props {
@@ -58,18 +59,21 @@ export default async function PublicProfilePage({ params }: Props) {
   const { data: profile } = await supabase
     .schema('figurinhas')
     .from('profiles')
-    .select('id, username, city, state, contact_by_whatsapp, contact_by_email, created_at')
+    .select('id, username, city, state, contact_by_whatsapp, contact_by_email, created_at, latitude, longitude')
     .eq('username', username)
     .single()
 
   if (!profile) notFound()
 
-  const { data: userStickers } = await supabase
-    .schema('figurinhas')
-    .from('user_stickers')
-    .select('*, sticker:sticker_id(id, number, player_name, team, country, section)')
-    .eq('user_id', profile.id)
-    .order('sticker(number)')
+  const [{ data: userStickers }, { data: { user } }] = await Promise.all([
+    supabase
+      .schema('figurinhas')
+      .from('user_stickers')
+      .select('*, sticker:sticker_id(id, number, player_name, team, country, section)')
+      .eq('user_id', profile.id)
+      .order('sticker(number)'),
+    supabase.auth.getUser(),
+  ])
 
   const stickers = (userStickers || []) as (UserSticker & { sticker: Sticker })[]
 
@@ -80,8 +84,21 @@ export default async function PublicProfilePage({ params }: Props) {
     return acc
   }, {})
 
-  const { data: { user } } = await supabase.auth.getUser()
   const isLoggedIn = !!user
+
+  // Calculate distance from viewer to profile owner (server-side only)
+  let distanceKm: number | null = null
+  if (user && profile.latitude && profile.longitude) {
+    const { data: myProfile } = await supabase
+      .schema('figurinhas')
+      .from('profiles')
+      .select('latitude, longitude')
+      .eq('id', user.id)
+      .single()
+    if (myProfile?.latitude && myProfile?.longitude) {
+      distanceKm = Math.round(haversineKm(myProfile.latitude, myProfile.longitude, profile.latitude, profile.longitude))
+    }
+  }
 
   return (
     <PublicProfileClient
@@ -90,6 +107,7 @@ export default async function PublicProfilePage({ params }: Props) {
       totalStickers={stickers.length}
       isLoggedIn={isLoggedIn}
       currentUserId={user?.id ?? null}
+      distanceKm={distanceKm}
     />
   )
 }

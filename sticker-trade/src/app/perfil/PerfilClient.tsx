@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/types'
+import { distanceLabel } from '@/lib/geo'
 
 const BR_STATES = [
   'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS',
@@ -29,6 +30,11 @@ export default function PerfilClient({ profile, email, totalRepetidas }: Props) 
   const [saved, setSaved] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
+  const [hasGps, setHasGps] = useState(
+    profile?.location_consent && profile?.latitude !== null
+  )
+  const [gpsStatus, setGpsStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+
   async function handleSave() {
     setSaving(true)
     await supabase
@@ -39,6 +45,40 @@ export default function PerfilClient({ profile, email, totalRepetidas }: Props) 
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
+  }
+
+  async function handleUpdateGps() {
+    if (!navigator.geolocation) {
+      setGpsStatus('error')
+      return
+    }
+    setGpsStatus('loading')
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords
+        const { error } = await supabase
+          .schema('figurinhas')
+          .from('profiles')
+          .update({ latitude, longitude, location_consent: true })
+          .eq('id', profile.id)
+        if (error) { setGpsStatus('error'); return }
+        setHasGps(true)
+        setGpsStatus('success')
+        setTimeout(() => setGpsStatus('idle'), 4000)
+      },
+      () => setGpsStatus('error'),
+      { timeout: 10000 }
+    )
+  }
+
+  async function handleRemoveGps() {
+    await supabase
+      .schema('figurinhas')
+      .from('profiles')
+      .update({ latitude: null, longitude: null, location_consent: false })
+      .eq('id', profile.id)
+    setHasGps(false)
+    setGpsStatus('idle')
   }
 
   async function handleDelete() {
@@ -97,6 +137,54 @@ export default function PerfilClient({ profile, email, totalRepetidas }: Props) 
             </select>
           </div>
         </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h2 className="font-semibold text-gray-800 mb-1">Localização GPS</h2>
+        <p className="text-xs text-gray-400 mb-4">
+          Suas coordenadas nunca são exibidas. Apenas a distância aproximada é calculada para ordenar
+          trocas próximas. Você pode remover a qualquer momento (LGPD Art. 18).
+        </p>
+
+        {hasGps ? (
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-2 text-sm text-green-700 font-medium">
+              <span>📍</span> Localização GPS ativa
+            </span>
+            <button
+              onClick={handleRemoveGps}
+              className="text-xs text-red-500 underline hover:text-red-700"
+            >
+              Remover localização
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-xs text-gray-500">
+              Sem GPS: trocas são ordenadas por cidade/estado informados acima.
+            </p>
+            <button
+              onClick={handleUpdateGps}
+              disabled={gpsStatus === 'loading'}
+              className="flex items-center gap-2 bg-green-700 hover:bg-green-800 disabled:bg-green-400 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+            >
+              {gpsStatus === 'loading' ? (
+                <><span className="animate-spin">⏳</span> Obtendo localização...</>
+              ) : (
+                <><span>📍</span> Ativar localização GPS</>
+              )}
+            </button>
+          </div>
+        )}
+
+        {gpsStatus === 'success' && (
+          <p className="mt-2 text-xs text-green-600">✓ Localização atualizada com sucesso!</p>
+        )}
+        {gpsStatus === 'error' && (
+          <p className="mt-2 text-xs text-red-500">
+            Não foi possível obter a localização. Verifique as permissões do navegador.
+          </p>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">

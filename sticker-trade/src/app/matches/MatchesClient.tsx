@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { distanceLabel } from '@/lib/geo'
 
 interface MatchRow {
   id: string
@@ -15,6 +16,7 @@ interface MatchRow {
   profile_b: { id: string; username: string; city: string | null; state: string | null; contact_by_whatsapp: boolean; contact_by_email: boolean }
   status: string
   created_at: string
+  partner_distance_km: number | null
 }
 
 interface Props {
@@ -142,9 +144,16 @@ export default function MatchesClient({ matches, currentUserId }: Props) {
               {/* Parceiro */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">
-                    Match com <span className="text-green-700">@{partner.username}</span>
-                  </p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-semibold text-gray-800">
+                      Match com <span className="text-green-700">@{partner.username}</span>
+                    </p>
+                    {match.partner_distance_km !== null && (
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                        📍 {distanceLabel(match.partner_distance_km)}
+                      </span>
+                    )}
+                  </div>
                   {partner.city && (
                     <p className="text-xs text-gray-400">
                       {partner.city}{partner.state ? `, ${partner.state}` : ''}

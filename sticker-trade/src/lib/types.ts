@@ -5,6 +5,9 @@ export interface Profile {
   phone: string
   city: string | null
   state: string | null
+  latitude: number | null
+  longitude: number | null
+  location_consent: boolean
   lgpd_consent: boolean
   lgpd_consent_at: string | null
   contact_by_whatsapp: boolean
@@ -114,4 +117,5 @@ export interface FeedItem {
   country: string | null
   section: string | null
   quantity: number
+  distance_km: number | null
 }

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/Header'
 import MatchesClient from './MatchesClient'
+import { haversineKm } from '@/lib/geo'
 
 export default async function MatchesPage() {
   const supabase = await createClient()
@@ -34,12 +35,35 @@ export default async function MatchesPage() {
       .in('id', newIds)
   }
 
-  const { count: matchCount } = await supabase
-    .schema('figurinhas')
-    .from('matches')
-    .select('*', { count: 'exact', head: true })
-    .or(`user_a_id.eq.${user.id},user_b_id.eq.${user.id}`)
-    .eq('status', 'new')
+  // Calculate partner distances
+  const [{ data: myProfile }, { count: matchCount }] = await Promise.all([
+    supabase.schema('figurinhas').from('profiles').select('latitude, longitude').eq('id', user.id).single(),
+    supabase.schema('figurinhas').from('matches').select('*', { count: 'exact', head: true })
+      .or(`user_a_id.eq.${user.id},user_b_id.eq.${user.id}`).eq('status', 'new'),
+  ])
+
+  let partnerDistMap = new Map<string, number>()
+  if (myProfile?.latitude && myProfile?.longitude && rawMatches?.length) {
+    const partnerIds = rawMatches.map((m: any) =>
+      m.user_a_id === user.id ? m.user_b_id : m.user_a_id
+    )
+    const { data: partnerCoords } = await supabase
+      .schema('figurinhas')
+      .from('profiles')
+      .select('id, latitude, longitude')
+      .in('id', [...new Set(partnerIds)])
+
+    for (const p of (partnerCoords || []) as any[]) {
+      if (p.latitude && p.longitude) {
+        partnerDistMap.set(p.id, Math.round(haversineKm(myProfile.latitude, myProfile.longitude, p.latitude, p.longitude)))
+      }
+    }
+  }
+
+  const matchesWithDist = (rawMatches || []).map((m: any) => {
+    const partnerId = m.user_a_id === user.id ? m.user_b_id : m.user_a_id
+    return { ...m, partner_distance_km: partnerDistMap.get(partnerId) ?? null }
+  })
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -54,7 +78,7 @@ export default async function MatchesPage() {
           </p>
         </div>
         <MatchesClient
-          matches={(rawMatches || []) as any[]}
+          matches={matchesWithDist as any[]}
           currentUserId={user.id}
         />
       </main>
