@@ -2,6 +2,9 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/Header'
+import ShareProfileButton from '@/components/ShareProfileButton'
+import AffiliateButton from '@/components/AffiliateButton'
+import { pacotesBuyUrl } from '@/lib/affiliates'
 import type { UserSticker, Sticker } from '@/lib/types'
 
 export default async function DashboardPage() {
@@ -59,6 +62,14 @@ export default async function DashboardPage() {
           >
             + Adicionar figurinhas
           </Link>
+        </div>
+
+        {/* Compartilhar + afiliado */}
+        {profile?.username && (
+          <ShareProfileButton username={profile.username} />
+        )}
+        <div className="mb-6">
+          <AffiliateButton url={pacotesBuyUrl()} label="🛒 Comprar pacotes de figurinhas Copa 2026" variant="banner" />
         </div>
 
         {/* Cards de resumo */}

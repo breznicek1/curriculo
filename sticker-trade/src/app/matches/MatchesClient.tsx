@@ -7,8 +7,10 @@ interface MatchRow {
   id: string
   user_a_id: string
   user_b_id: string
-  sticker_a: { number: number; player_name: string; team: string | null; section: string | null }
-  sticker_b: { number: number; player_name: string; team: string | null; section: string | null }
+  sticker_a_id: string
+  sticker_b_id: string
+  sticker_a: { id: string; number: number; player_name: string; team: string | null; section: string | null }
+  sticker_b: { id: string; number: number; player_name: string; team: string | null; section: string | null }
   profile_a: { id: string; username: string; city: string | null; state: string | null; contact_by_whatsapp: boolean; contact_by_email: boolean }
   profile_b: { id: string; username: string; city: string | null; state: string | null; contact_by_whatsapp: boolean; contact_by_email: boolean }
   status: string
@@ -56,7 +58,7 @@ export default function MatchesClient({ matches, currentUserId }: Props) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         owner_id: partner.id,
-        sticker_id: iAmA ? match.sticker_b : match.sticker_a,
+        sticker_id: iAmA ? match.sticker_b_id : match.sticker_a_id,
         message: `Oi! Temos um match perfeito ⚡\nVocê tem a #${partnerSticker.number} (${partnerSticker.player_name}) que eu preciso, e eu tenho a #${mySticker.number} (${mySticker.player_name}) que você precisa. Vamos trocar?`,
         method,
       }),

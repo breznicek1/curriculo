@@ -3,6 +3,8 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import AffiliateButton from '@/components/AffiliateButton'
+import { stickerBuyUrl } from '@/lib/affiliates'
 import type { Sticker } from '@/lib/types'
 
 interface DeckSticker extends Sticker {
@@ -261,6 +263,17 @@ export default function SwipeClient({ deck, wishlistIds, userId }: Props) {
       <p className="text-xs text-gray-400 text-center">
         Swipe ← pular &nbsp;|&nbsp; Swipe → quero
       </p>
+
+      {/* Afiliado contextual: só aparece se a figurinha tem poucos donos */}
+      {current.available_count === 0 && (
+        <div className="w-full max-w-sm mt-2">
+          <AffiliateButton
+            url={stickerBuyUrl(current.player_name)}
+            label={`🛒 Comprar #${current.number} ${current.player_name} online`}
+            variant="banner"
+          />
+        </div>
+      )}
     </div>
   )
 }
